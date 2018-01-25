@@ -6,7 +6,7 @@ alias Servy.FileHandler
   def show(conv, "faq") do
     @pages_path
     |> Path.join("faq.md")
-    |> File.read
+    |> File.read  
     |> FileHandler.handle_file(conv)
     |> markdown_to_html
   end
@@ -18,10 +18,16 @@ alias Servy.FileHandler
     |> FileHandler.handle_file(conv)
   end
 
-  def markdown_to_html(%{resp_status: 200} = conv) do
+  def markdown_to_html(%{status: 200} = conv) do 
     %{ conv | resp_body: Earmark.as_html!(conv.resp_body)}
   end
 
-  def markdown_to_html(conv), do: conv
-  
+  def markdown_to_html(conv) do
+    if Mix.env == :dev do  
+      IO.puts("**File was NOT converted to markdown!**")
+      conv
+    else
+      conv
+    end
+  end
 end
