@@ -1,0 +1,10 @@
+<h1>Sensor Results!</h1>
+
+<ul>
+  <%= for snapshot <- snapshots do %>
+  <li>Snapshot - <%= snapshot %></li>
+  <% end %>
+</ul>
+
+<h2>Where is Bigfoot?</h2>
+<%= inspect location %>
