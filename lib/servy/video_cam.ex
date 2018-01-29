@@ -1,4 +1,3 @@
-
 defmodule Servy.VideoCam do
   @doc """
   Simulates sending a request to an external API

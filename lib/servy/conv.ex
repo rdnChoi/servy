@@ -1,10 +1,10 @@
 defmodule Servy.Conv do
-  defstruct method: "", 
-            path: "", 
+  defstruct method: "",
+            path: "",
             params: %{},
             headers: %{},
-            resp_headers: %{ "Content-Type" => "text/html" },
-            resp_body: "", 
+            resp_headers: %{"Content-Type" => "text/html"},
+            resp_body: "",
             status: nil
 
   def full_status(conv) do
@@ -12,6 +12,7 @@ defmodule Servy.Conv do
   end
 
   defp status_reason(code) do
+    # This allows us to access the value associated with key
     %{
       200 => "OK",
       201 => "Created",
@@ -19,7 +20,6 @@ defmodule Servy.Conv do
       403 => "Forbidden",
       404 => "Not Found",
       500 => "Internal Server Error"
-    }[code] # This allows us to access the value associated with key
+    }[code]
   end
-
 end

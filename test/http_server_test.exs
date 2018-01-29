@@ -19,15 +19,14 @@ defmodule HttpServerTest do
     |> Enum.map(&Task.async(fn -> HTTPoison.get(&1) end))
     |> Enum.map(&Task.await/1)
     |> Enum.map(&assert_successful_response/1)
-    end
+  end
 
-    defp assert_successful_response({:ok, response}) do
-      assert response.status_code == 200
-    end
+  defp assert_successful_response({:ok, response}) do
+    assert response.status_code == 200
   end
 
   # test "Test Erlang HttpServer" do
-  
+
   #   request = """
   #   GET /wildthings HTTP/1.1\r
   #   Host: example.com\r
@@ -48,7 +47,7 @@ defmodule HttpServerTest do
   # end
 
   # test "HTTPoison dep with our Erlang HTTPServer" do
-    
+
   #   spawn(HttpServer, :start, [4000])
 
   #   {:ok, response} = HTTPoison.get("localhost:4000/wildthings")
@@ -72,5 +71,4 @@ defmodule HttpServerTest do
   #   assert response.status_code == 200
   #   assert response.body == "Bears, Lions, Tigers"
   # end
-
 end

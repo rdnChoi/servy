@@ -1,5 +1,4 @@
 defmodule Servy.Handler do
-  
   # import Servy.Plugins, only: [rewrite_path: 1, log: 1, track: 1]
   # import Servy.Parser, only: [parse: 1]
 
@@ -7,54 +6,68 @@ defmodule Servy.Handler do
   alias Servy.Plugins
   alias Servy.FileHandler
   alias Servy.Parser
-  alias Servy.Conv #Struct
+  # Struct
+  alias Servy.Conv
   alias Servy.BearController
   alias Servy.PagesController
   alias Servy.VideoCam
   alias Servy.View
+  alias Servy.FourOhFourCounter
 
   @moduledoc """
   Handles HTTP Requests.
   """
-  @pages_path Path.expand("../../pages", __DIR__) # Absolute path of pages folder
-  
-  @doc "Transforms request into a response"  
+  # Absolute path of pages folder
+  @pages_path Path.expand("../../pages", __DIR__)
+
+  @doc "Transforms request into a response"
   def handle(request) do
     request
-    |> Parser.parse
-    |> Plugins.rewrite_path
-    |> Plugins.log
+    |> Parser.parse()
+    |> Plugins.rewrite_path()
+    |> Plugins.log()
     |> route
-    |> Plugins.track
+    |> Plugins.track()
     |> put_content_length
     |> format_response
   end
 
-  def route(%Conv{ method: "GET", path: "/sensors" } = conv) do
+  def route(%Conv{method: "GET", path: "/pledges/new"} = conv) do
+    Servy.PledgeController.new(conv)
+  end
+
+  def route(%Conv{method: "GET", path: "/pledges"} = conv) do
+    Servy.PledgeController.index(conv)
+  end
+
+  def route(%Conv{method: "POST", path: "/pledges"} = conv) do
+    Servy.PledgeController.create(conv, conv.params)
+  end
+
+  def route(%Conv{method: "GET", path: "/sensors"} = conv) do
     task = Task.async(Servy.Tracker, :get_location, ["bigfoot"])
-    
-    snapshots = 
+
+    snapshots =
       ["cam-1", "cam-2", "cam-3"]
       |> Enum.map(&Task.async(fn -> VideoCam.get_snapshot(&1) end))
       |> Enum.map(&Task.await/1)
-    
+
     where_is_bigfoot = Task.await(task)
-    
-    %{ conv | status: 200, resp_body: inspect {snapshots, where_is_bigfoot} }
-    
+
+    %{conv | status: 200, resp_body: inspect({snapshots, where_is_bigfoot})}
+
     View.render(conv, "sensors.eex", snapshots: snapshots, location: where_is_bigfoot)
-
   end
 
-  def route(%Conv{ method: "GET", path: "/wildthings" } = conv) do
-    %{ conv | status: 200, resp_body: "Bears, Lions, Tigers" }
+  def route(%Conv{method: "GET", path: "/wildthings"} = conv) do
+    %{conv | status: 200, resp_body: "Bears, Lions, Tigers"}
   end
 
-  def route(%Conv{ method: "GET", path: "/api/bears" } = conv) do
+  def route(%Conv{method: "GET", path: "/api/bears"} = conv) do
     Servy.API.BearController.index(conv)
   end
 
-  def route(%Conv{ method: "POST", path: "/api/bears"} = conv) do
+  def route(%Conv{method: "POST", path: "/api/bears"} = conv) do
     Servy.API.BearController.create(conv, conv.params)
   end
 
@@ -62,18 +75,18 @@ defmodule Servy.Handler do
     BearController.create(conv, conv.params)
   end
 
-  def route(%Conv{ method: "GET", path: "/bears" } = conv) do
+  def route(%Conv{method: "GET", path: "/bears"} = conv) do
     BearController.index(conv)
   end
 
   def route(%Conv{method: "GET", path: "/bears/new"} = conv) do
     @pages_path
     |> Path.join("form.html")
-    |> File.read
+    |> File.read()
     |> FileHandler.handle_file(conv)
   end
 
-  def route(%Conv{ method: "GET", path: "/bears/" <> id } = conv) do
+  def route(%Conv{method: "GET", path: "/bears/" <> id} = conv) do
     params = Map.put(conv.params, "id", id)
     BearController.show(conv, params)
   end
@@ -81,7 +94,7 @@ defmodule Servy.Handler do
   def route(%Conv{method: "GET", path: "/about"} = conv) do
     @pages_path
     |> Path.join("about.html")
-    |> File.read
+    |> File.read()
     |> FileHandler.handle_file(conv)
   end
 
@@ -89,18 +102,26 @@ defmodule Servy.Handler do
     PagesController.show(conv, file)
   end
 
-  def route(%Conv{ method: "DELETE"} = conv) do
-    BearController.delete(conv) 
+  def route(%Conv{method: "DELETE"} = conv) do
+    BearController.delete(conv)
+  end
+
+  def route(%Conv{method: "GET", path: "/404s"} = conv) do
+    counts = FourOhFourCounter.get_counts()
+
+    %{conv | status: 200, resp_body: inspect(counts)}
   end
 
   def route(%Conv{path: path} = conv) do
-    %{ conv | status: 404, resp_body: "No #{path} here!"}
+    %{conv | status: 404, resp_body: "No #{path} here!"}
   end
 
-  def put_content_length(conv) do    
+  # ----- End of Routes ------
+
+  def put_content_length(conv) do
     cont_length = Map.put(conv.resp_headers, "Content-Length", byte_size(conv.resp_body))
 
-    %{ conv | resp_headers: cont_length }
+    %{conv | resp_headers: cont_length}
   end
 
   def format_response(%Conv{} = conv) do
@@ -116,9 +137,10 @@ defmodule Servy.Handler do
   def format_response_headers(conv) do
     for {key, value} <- conv.resp_headers do
       "#{key}: #{value}\r"
-    end |> Enum.sort(&(&1 >= &2)) |> Enum.join("\n") 
+    end
+    |> Enum.sort(&(&1 >= &2))
+    |> Enum.join("\n")
   end
-  
 end
 
 # # Raw HTTP *Request* Example
@@ -127,7 +149,7 @@ end
 # Host: example.com/r/n
 # User-Agent: ExampleBrowser/1.0/r/n
 # Accept: */*/r/n
-#/r/n
+# /r/n
 # """
 
 # Raw HTTP *Request* Details:
@@ -138,13 +160,12 @@ end
 # Body - No body here
 # BLANK LINE - IMPORTANT 
 
-
 # Raw HTTP *Response* Example
 # expeted_response = """
 # HTTP/1.1 200 OK/r/n
 # Content-Type: text/html/r/n
 # Content-Length: 20/r/n
-#/r/n
+# /r/n
 # Bears, Lions, Tigers/r/n
 # """
 # *Response* Details:

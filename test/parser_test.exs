@@ -1,7 +1,7 @@
 defmodule ParserTest do
   use ExUnit.Case
   doctest Servy
-  
+
   alias Servy.Parser
 
   test "Parses a list of header fields into a map" do
@@ -11,4 +11,4 @@ defmodule ParserTest do
 
     assert headers == %{"A" => "1", "B" => "2"}
   end
-end   
+end

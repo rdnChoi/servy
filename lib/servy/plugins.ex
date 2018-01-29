@@ -1,10 +1,10 @@
 defmodule Servy.Plugins do
-
   require Logger
   alias Servy.Conv
+  alias Servy.FourOhFourCounter
 
   def rewrite_path(%Conv{path: "/wildlife"} = conv) do
-    %{ conv | path: "/wildthings"}
+    %{conv | path: "/wildthings"}
   end
 
   def rewrite_path(%Conv{path: path} = conv) do
@@ -14,26 +14,28 @@ defmodule Servy.Plugins do
   end
 
   defp rewrite_path_captures(%Conv{} = conv, %{"thing" => thing, "id" => id}) do
-    %{ conv | path: "/#{thing}/#{id}"}
+    %{conv | path: "/#{thing}/#{id}"}
   end
 
   defp rewrite_path_captures(%Conv{} = conv, nil), do: conv
 
   def log(conv) do
-    if Mix.env == :dev do
+    if Mix.env() == :dev do
       IO.inspect(%Conv{} = conv)
     end
+
     conv
   end
 
   def track(%Conv{status: 404, path: path} = conv) do
-    if Mix.env != :test do
+    if Mix.env() != :test do
+      FourOhFourCounter.bump_count(path)
       Logger.info("404 on path #{path}")
       Logger.warn("Warning: #{path} is on the loose!")
     end
+
     conv
   end
 
   def track(%Conv{} = conv), do: conv
-
 end

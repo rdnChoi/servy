@@ -1,5 +1,4 @@
 defmodule Servy.Parser do
-
   alias Servy.Conv
 
   def parse(request) do
@@ -13,19 +12,19 @@ defmodule Servy.Parser do
 
     params = parse_params(headers["Content-Type"], params_string)
 
-    %Conv{ 
-       method: method, 
-       path: path,
-       params: params,
-       headers: headers
-     }
+    %Conv{
+      method: method,
+      path: path,
+      params: params,
+      headers: headers
+    }
   end
 
   def parse_headers(header_lines) do
-    Enum.reduce(header_lines, %{}, fn(line, header_so_far) -> 
+    Enum.reduce(header_lines, %{}, fn line, header_so_far ->
       [key, value] = String.split(line, ": ")
       Map.put(header_so_far, key, value)
-      end)
+    end)
   end
 
   # # Recursive version
@@ -38,7 +37,7 @@ defmodule Servy.Parser do
   # def parse_headers([], headers), do: headers
 
   def parse_params("application/x-www-form-urlencoded", params_string) do
-    params_string |> String.trim |> URI.decode_query
+    params_string |> String.trim() |> URI.decode_query()
   end
 
   def parse_params("application/json", params_string) do
@@ -46,7 +45,6 @@ defmodule Servy.Parser do
   end
 
   def parse_params(_, _), do: %{}
-
 end
 
 # RAW HTTP Request

@@ -3,7 +3,8 @@ defmodule Servy.Wildthings do
 
   def list_bears() do
     # GET Aboslute path of file
-    Path.expand("../../db", __DIR__) # Absolute path of pages folder
+    # Absolute path of pages folder
+    Path.expand("../../db", __DIR__)
     |> Path.join("bears.json")
     |> read_file
     |> Poison.decode!(as: %{"bears" => [%Bear{}]})
@@ -14,6 +15,7 @@ defmodule Servy.Wildthings do
     case File.read(source) do
       {:ok, content} ->
         content
+
       {:error, reason} ->
         IO.inspect("Error reading #{source}. Reason: #{reason}.")
         []
@@ -21,13 +23,12 @@ defmodule Servy.Wildthings do
   end
 
   def get_bear(id) when is_integer(id) do
-    Enum.find(list_bears(), fn(b) -> b.id == id end)
+    Enum.find(list_bears(), fn b -> b.id == id end)
   end
 
   def get_bear(id) when is_binary(id) do
     id
-    |> String.to_integer
+    |> String.to_integer()
     |> get_bear
   end
-
 end
