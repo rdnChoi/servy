@@ -3,7 +3,7 @@ defmodule PledgeServerTest do
   alias Servy.PledgeServer
 
   test "Ensures Pledge Server ONLY holds 3 most recent calls" do
-    PledgeServer.start([{"sadf", 10}, {"choco", 40}, {"Aguacante", 50}])
+    PledgeServer.start()
 
     PledgeServer.create_pledge("larry", 10)
     PledgeServer.create_pledge("moe", 20)
