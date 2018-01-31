@@ -6,13 +6,12 @@ defmodule Servy.Handler do
   alias Servy.Plugins
   alias Servy.FileHandler
   alias Servy.Parser
-  # Struct
-  alias Servy.Conv
+  alias Servy.Conv # Struct
   alias Servy.BearController
   alias Servy.PagesController
-  alias Servy.VideoCam
   alias Servy.View
   alias Servy.FourOhFourCounter
+  alias Servy.SensorServer
 
   @moduledoc """
   Handles HTTP Requests.
@@ -45,18 +44,11 @@ defmodule Servy.Handler do
   end
 
   def route(%Conv{method: "GET", path: "/sensors"} = conv) do
-    task = Task.async(Servy.Tracker, :get_location, ["bigfoot"])
-
-    snapshots =
-      ["cam-1", "cam-2", "cam-3"]
-      |> Enum.map(&Task.async(fn -> VideoCam.get_snapshot(&1) end))
-      |> Enum.map(&Task.await/1)
-
-    where_is_bigfoot = Task.await(task)
-
-    %{conv | status: 200, resp_body: inspect({snapshots, where_is_bigfoot})}
-
-    View.render(conv, "sensors.eex", snapshots: snapshots, location: where_is_bigfoot)
+    sensor_data = SensorServer.get_sensor_data()
+    
+    %{conv | status: 200, resp_body: inspect(sensor_data)}
+    
+    View.render(conv, "sensors.eex", snapshots: sensor_data.snapshots, location: sensor_data.location)
   end
 
   def route(%Conv{method: "GET", path: "/wildthings"} = conv) do
